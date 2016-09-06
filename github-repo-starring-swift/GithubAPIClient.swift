@@ -8,10 +8,11 @@
 
 import UIKit
 
+
 class GithubAPIClient {
     
     class func getRepositoriesWithCompletion(completion: (NSArray) -> ()) {
-        let urlString = "\(githubAPIURL)/repositories?client_id=\(githubClientID)&client_secret=\(githubClientSecret)"
+        let urlString = "\(Secrets.githubAPIURL)/repositories?client_id=\(Secrets.githubClientID)&client_secret=\(Secrets.githubClientSecret)"
         let url = NSURL(string: urlString)
         let session = NSURLSession.sharedSession()
         
@@ -28,5 +29,102 @@ class GithubAPIClient {
         task.resume()
     }
     
-}
+    
+    class func checkIfRepositoryIsStarred(fullName: String, completion: Bool -> ()) {
+        let session = NSURLSession(configuration: NSURLSessionConfiguration.defaultSessionConfiguration())
+        
+        let urlString = "\(Secrets.githubStarApiUrl)/\(fullName)"
+        
+        let url = NSURL(string: urlString)
+        //let session = NSURLSession.sharedSession()
+        guard let unwrappedURL = url else { fatalError("Invalid URL") }
+        
+        let request = NSMutableURLRequest(URL: unwrappedURL)
+        request.HTTPMethod = "GET"
+        request.addValue("\(Secrets.token)", forHTTPHeaderField: "Authorization")
+        let task = session.dataTaskWithRequest(request) {data, response, error in
+            guard let responseResult = response as? NSHTTPURLResponse else {
+                assertionFailure("not working")
+                return
+            }
+            
+            if responseResult.statusCode == 204 {
+                completion(true)
+                 print("204 working")
+            }else if responseResult.statusCode == 404 {
+                completion(false)
+                print("404 fix error")
+            }else {
+                print("Other status code \(responseResult.statusCode)")
+            }
+            
+        }
+        task.resume()
+    }
+    
+    class func starRepository(fullName: String, completion:() -> ()) {
+        let session = NSURLSession(configuration: NSURLSessionConfiguration.defaultSessionConfiguration())
+        
+        let urlString = "\(Secrets.githubStarApiUrl)/\(fullName)"
+        
+        let url = NSURL(string: urlString)
+        //let session = NSURLSession.sharedSession()
+        guard let unwrappedURL = url else { fatalError("Invalid URL") }
+        
+        let request = NSMutableURLRequest(URL: unwrappedURL)
+        request.HTTPMethod = "PUT"
+        request.addValue("\(Secrets.token)", forHTTPHeaderField: "Authorization")
+        let task = session.dataTaskWithRequest(request) {data, response, error in
+            guard let responseResult = response as? NSHTTPURLResponse else {
+                assertionFailure("not working")
+                return
+            }
+            
+            if responseResult.statusCode == 204 {
+                completion()
+               
+            }else {
+                print("Other status code \(responseResult.statusCode)")
+            }
+            
+            
+            
+            
+        }
+        task.resume()
+        
+    }
+    
+    class func unStarRepository(fullName: String, completion:() -> ()) {
+       let session = NSURLSession(configuration: NSURLSessionConfiguration.defaultSessionConfiguration())
+        
+        let urlString = "\(Secrets.githubStarApiUrl)/\(fullName)"
+        
+        let url = NSURL(string: urlString)
+        //let session = NSURLSession.sharedSession()
+        guard let unwrappedURL = url else { fatalError("Invalid URL") }
+        
+        let request = NSMutableURLRequest(URL: unwrappedURL)
+        request.HTTPMethod = "DELETE"
+        request.addValue("\(Secrets.token)", forHTTPHeaderField: "Authorization")
+        let task = session.dataTaskWithRequest(request) {data, response, error in
+            guard let responseResult = response as? NSHTTPURLResponse else {
+                assertionFailure("not working")
+                return
+            }
+            
+            if responseResult.statusCode == 204 {
+                completion()
+            }else {
+                print("Other status code \(responseResult.statusCode)")
+            }
+            
+            
+    
+            
+        }
+        task.resume()
+        
+    }
 
+}
